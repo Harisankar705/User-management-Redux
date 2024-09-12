@@ -1,0 +1,11 @@
+const express=require('express')
+const adminRoute=express.Router()
+const adminController=require('../controller/adminController')
+const authMiddleware=require('../middleware/authMiddleware')
+adminRoute.post('/admin',adminController.adminLogin)
+adminRoute.get('/admin/userDetails',authMiddleware.verifyAdminToken,adminController.getUser)
+adminRoute.get('/admin/dashboard',authMiddleware.verifyAdminToken,adminController.adminDashboard)
+adminRoute.post('/admin/create-user',authMiddleware.verifyAdminToken,adminController.upload.single('profilePicture'),adminController.createUser)
+adminRoute.patch('/admin/edituser/:id',adminController.editUser)
+adminRoute.put('/admin/block-user/:id',adminController.blockUser)
+module.exports=adminRoute
