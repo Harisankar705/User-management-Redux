@@ -2,49 +2,75 @@ import React, { useEffect, useState } from "react";
 import "./dashboard.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+
 import {
   adminLogout,
-  blockUser,
+  deleteUser,
   reset,
   userDetails,
 } from "../../../features/adminAuth/adminSlice";
 import defaultProfilePic from "../../../assets/images/defaultProfile.png";
+import { toast } from "react-toastify";
+
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage] = useState(5); 
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userData, isError, isLoading, isSuccess, message } = useSelector(
+  const { userData, isError, isLoading, isSuccess, message,admin } = useSelector(
     (state) => state.admin
   );
 
-  useEffect(() => {
-    dispatch(userDetails());
-    return () => {
-      dispatch(reset());
-    };
-  }, [dispatch]);
+  
+  useEffect(()=>{
+    if(!admin)
+    {
+      navigate('/admin')
+    }
+    else
+    {
+      dispatch(userDetails())
+    }
+  },[dispatch,admin,navigate])
 
   const users = userData?.users || [];
   const filteredUsers = users.filter(user =>
-      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
   const handleViewUser = (userId) => {
-    navigate(`/admin/viewDetails/${userId}`);
+    navigate(`/admin/viewUser/${userId}`);
   };
 
-  // Handle blocking user
-  const handleBlockUser =async (userId) => {
-    if(window.confirm("Are you sure"))
+  const handleDeleteUser=async(userId)=>{
+    if(window.confirm("Are you sure?"))
     {
-      dispatch(blockUser(userId))
+      try {
+       const response= await dispatch(deleteUser(userId)).unwrap()
+       if(response.message)
+       {
+        toast.success(response.message)
+       }
+        dispatch(userDetails())
+      } catch (error) {
+        console.log("Error occured while deleting user")
+        toast.error('failed to delete user')
+      }
     }
-  };
-  const onLogout=()=>{
-    dispatch(adminLogout())
-    navigate('/')
   }
+
+  const onLogout = () => {
+    dispatch(adminLogout());
+    navigate('/');
+  };
 
   return (
     <div className="admin-dashboard">
@@ -58,7 +84,7 @@ const Dashboard = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-<button className="logout-btn" onClick={() => navigate('/admin/createUser')}>Create User</button>
+          <button className="logout-btn" onClick={() => navigate('/admin/createUser')}>Create User</button>
           <button className="logout-btn" onClick={onLogout}>Logout</button>
         </div>
         <table className="user-details">
@@ -72,46 +98,63 @@ const Dashboard = () => {
             </tr>
           </thead>
           <tbody className="user-body">
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
+            {currentUsers.length > 0 ? (
+              currentUsers.map((user) => (
                 <tr key={user._id}>
                   <td className="profilePicture">
                     <img
                       src={
-                        user.profilePicture ?`http://localhost:3000/uploads/${user.profilePicture}` :
+                        user.profilePicture ? `http://localhost:3000/uploads/${user.profilePicture}` :
                         defaultProfilePic
                       }
                       alt={`${user.name}'s profile`}
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        borderRadius: "50%",
-                      }}
+                      style={{ width: "50px", height: "50px", borderRadius: "50%" }}
                     />
                   </td>
                   <td className="user-name">{user.username}</td>
                   <td className="user-email">{user.email}</td>
                   <td className="view-btn">
-                    <button onClick={() => handleViewUser(user._id)}>
-                      View
-                    </button>
+                    <button onClick={() => handleViewUser(user._id)}>View</button>
                   </td>
                   <td className="block-btn">
-                    <button onClick={() => handleBlockUser(user._id)}>
-                      {user.isActive ? "Unblock" : "Block"}
+                    <button onClick={() => handleDeleteUser(user._id)}>
+                      Delete
                     </button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="no-results">
-                  No results
-                </td>
+                <td colSpan="5" className="no-results">No results</td>
               </tr>
             )}
           </tbody>
         </table>
+        <div className="pagination">
+          <button
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+
+          {Array.from({ length: totalPages }, (_, index) => (
+            <button
+              key={index + 1}
+              onClick={() => setCurrentPage(index + 1)}
+              className={currentPage === index + 1 ? "active" : ""}
+            >
+              {index + 1}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -18,16 +18,20 @@ body {
   justify-content: center;
   align-items: center;
   width: 100%;
+  overflow: hidden;
 }
 
 .admin-box {
   background-color: white;
   width: 85%;
+  max-width: 1200px;
+  height: 80vh;
   border-radius: 20px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   position: relative;
   padding: 20px;
   overflow-x: auto;
+  overflow-y: auto;
   margin: auto;
 }
 
@@ -102,6 +106,7 @@ body {
 } */
 .user-details td {
   text-align: center;
+  word-wrap: break-word;
 }
 .user-details .profilePicture {
   width: 10%;
@@ -164,4 +169,29 @@ body {
     padding: 20px;
     color: #999;
     font-style: italic;
+}
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pagination button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pagination button.active {
+  background-color: #45a049;
+}
+
+.pagination button[disabled] {
+  background-color: #ccc;
+  cursor: not-allowed;
 }

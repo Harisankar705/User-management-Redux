@@ -1,53 +1,54 @@
 const jwt = require("jsonwebtoken");
 const userSchema = require("../model/userSchema");
-const adminSchema=require('../model/adminSchema')
+const adminSchema = require("../model/adminSchema");
 const verifyUserToken = async (req, res, next) => {
   let token;
-  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
     try {
-      token = req.headers.authorization.split(' ')[1];
+      token = req.headers.authorization.split(" ")[1];
       if (!token) {
         return res.status(401).json({ message: "No token provided" });
       }
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("DECODED",decoded)
-      req.user = await userSchema.findById(decoded.id).select('-password');
+      console.log("DECODED", decoded);
+      req.user = await userSchema.findById(decoded.id).select("-password");
       next();
     } catch (error) {
-      console.error('Error occurred in verifyUserToken', error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error("Error occurred in verifyUserToken", error);
+      res.status(401).json({ message: "Not authorized, token failed" });
     }
   } else {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    res.status(401).json({ message: "Not authorized, no token" });
   }
 };
 
-
 const verifyAdminToken = async (req, res, next) => {
   let token;
+  console.log("IN verifytokne")
 
-  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
     try {
-      // Extract token from header
-      token = req.headers.authorization.split(' ')[1];
-      
+      token = req.headers.authorization.split(" ")[1];
+
       if (!token) {
-        console.log('No token provided');
+        console.log("No token provided");
         return res.status(401).json({ message: "No token provided" });
       }
 
-      // Log the extracted token
-      console.log('Extracted Token:', token);
-
-      // Verify the token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("DECODED JWT:", decoded);
 
-      // Find the admin by ID decoded from the token
-      req.admin = await adminSchema.findById(decoded.id).select('-password');
+      req.admin = await adminSchema.findById(decoded.id).select("-password");
 
       if (!req.admin) {
-        return res.status(401).json({ message: "No admin found with this token" });
+        return res
+          .status(401)
+          .json({ message: "No admin found with this token" });
       }
 
       next();
@@ -56,9 +57,9 @@ const verifyAdminToken = async (req, res, next) => {
       return res.status(401).json({ message: "Not authorized, token failed" });
     }
   } else {
-    console.log('No Authorization header or Bearer token missing');
+    console.log("No Authorization header or Bearer token missing");
     return res.status(401).json({ message: "Not authorized, no token" });
   }
 };
 
-module.exports={verifyAdminToken,verifyUserToken}
+module.exports = { verifyAdminToken, verifyUserToken };

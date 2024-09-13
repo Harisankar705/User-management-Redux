@@ -32,7 +32,7 @@ const Home = () => {
       <div className="profile-container">
         <div className="profile-picture">
           <img
-            src={`http://localhost:3000/uploads/${user.profilePicture}`}
+            src={user.profilePicture?`http://localhost:3000/uploads/${user.profilePicture}`: defaultProfilePic}
             alt="profile"
             className="profile-img"
           />

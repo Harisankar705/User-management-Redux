@@ -59,20 +59,20 @@ userController.handleSignup=async(req,res)=>{
 
 userController.handleLogin=async(req,res)=>{
   try {
-    console.log('in handlelogin')
-    console.log(req.body)
     const {email,password}=req.body
-    console.log("EMAIl",email)
+    console.log(req.body)
     const user=await userSchema.findOne({email})
-    if(user)
+    if(!user)
     {
-      if(user.isBlocked)
-      {
-        res.status(400)
-        throw new Error("You are currently blocked")
-      }
+     res.status(400)
+     throw new Error("user not found")
     }
-    if(user && (await bcrypt.compare(password,user.password)))
+    if(!user.isActive)
+    {
+      res.status(400)
+      throw new Error("Your account is temporarily disabled!")
+    }
+    if(await bcrypt.compare(password,user.password))
     {
       const responseData={
         _id:user.id,
@@ -91,6 +91,7 @@ userController.handleLogin=async(req,res)=>{
     }
     } catch (error) {
     console.error("error occured during user signup",error)
+    res.status(500).json({message:error.message})
   }
 }
 

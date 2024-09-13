@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -20,13 +20,19 @@ const CreateUser = () => {
   const { isLoading, isError, admin, isSuccess, message,userData } = useSelector(
     (state) => state.admin
   );
-  const handleProfilePictureChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfilePicture(file);
-      setProfilePictureReview(URL.createObjectURL(file));
+  useEffect(()=>{
+    if(!admin)
+    {
+      navigate('/admin')
     }
-  };
+    return ()=>{
+      if(profilePictureReview!==defaultProfilePic)
+      {
+        URL.removeObjectURL(profilePictureReview)
+      }
+    }
+  },[admin,navigate,profilePictureReview])
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     const usernamePattern = /^[a-zA-Z0-9]+$/
@@ -61,11 +67,13 @@ const CreateUser = () => {
       .unwrap()
       .then(() => {
         toast.success("user created");
+        navigate('/admin/dashboard')
+
       })
       .catch((error) => {
         toast.error(`Error: ${error}`);
+        return
       });
-      navigate('/admin/dashboard')
       dispatch(reset())
   };
   const handleCancel = () => {

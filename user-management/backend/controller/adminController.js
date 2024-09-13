@@ -60,7 +60,7 @@ adminController.createUser = async (req, res) => {
     const { username, email, password } = req.body;
     const userExists = await userSchema.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: "User already exists!" });
+      return res.status(400).json({ message: "Email already exists.Try another!" });
     }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -77,40 +77,56 @@ adminController.createUser = async (req, res) => {
 };
 
 adminController.editUser = async (req, res) => {
+  const { username, email } = req.body;
+  const userId = req.params.id;
+
   try {
-    const userId = req.params.userId;
-    const { user } = req.body;
-    const editUserMail = user.email;
-    if (editUserMail) {
-      const sameEmailExists = await userSchema.findOne({ email: editUserMail });
-      if (sameEmailExists && sameEmailExists._id.toString() !== userId) {
-        return res.status(400).json({ message: "Email already exists!" });
+    // Check if user exists
+    const userExists = await userSchema.findById(userId);
+    if (!userExists) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // Check if the new email already exists
+    if (email && email !== userExists.email) {
+      const emailExists = await userSchema.findOne({ email });
+      if (emailExists) {
+        console.log('email already exists')
+        return res.status(400).json({ message: "Email already exists" });
+        
       }
     }
 
-    await userSchema.findByIdAndUpdate(userId, user);
-    res.status(200).json({ message: "User updated successfully!" });
+    if (username) userExists.username = username;
+    if (email) userExists.email = email;
+    if (req.file) userExists.profilePicture = req.file.filename;
+
+    const updatedUser = await userExists.save();
+
+    res.status(200).json({
+      _id: updatedUser._id,
+      name: updatedUser.username,
+      email: updatedUser.email,
+      profilePicture: updatedUser.profilePicture
+    });
+
   } catch (error) {
-    res
-      .status(400)
-      .json({ message: "Error occured during updatinguser", error });
+    console.error("Failed to edit user:", error);
+    res.status(500).json({ message: "Failed to edit user" });
   }
 };
 
-adminController.blockUser = async (req, res) => {
+
+
+adminController.deleteUser = async (req, res) => {
   try {
     const userId = req.params.id;
     console.log('userid',userId)
-    const user=await userSchema.findById(userId)
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-    user.isActive=!user.isActive
-    await user.save()
-   
-    console.log('user blcoked')
-    const users=await userSchema.find()
-    res.status(200).json({ users});
+    const user=await userSchema.findByIdAndDelete(userId)
+
+      const users=await userSchema.find()
+    res.status(200).json({message: "User deleted successfully",
+      users});
   } catch (error) {
     res.status(500).json({ message: "failed to delete user", error });
     console.log('failed to blocked',error)

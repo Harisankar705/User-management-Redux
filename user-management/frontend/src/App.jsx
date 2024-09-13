@@ -11,6 +11,7 @@ import EditProfilePage from "./pages/user/EditProfilePage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import DashboardPage from "./pages/admin/DashboardPage";
 import CreateUserPage from "./pages/admin/CreateUserPage";
+import ViewUserPage from "./pages/admin/ViewUserPage";
 function App() {
   return (
     <div>
@@ -26,6 +27,7 @@ function App() {
             <Route path="/admin" element={<AdminLoginPage/>}/>
             <Route path='/admin/dashboard' element={<DashboardPage/>}/>
             <Route path='/admin/createUser' element={<CreateUserPage/>}/>
+            <Route path='/admin/viewUser/:userId' element={<ViewUserPage/>}/>
           </Routes>
           <ToastContainer />
         </BrowserRouter>

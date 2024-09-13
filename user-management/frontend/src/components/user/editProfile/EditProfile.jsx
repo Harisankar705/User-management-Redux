@@ -58,7 +58,7 @@ const EditProfile = () => {
         setProfilePicture(file);
       } else {
         toast.error("Please select a valid image file");
-        e.target.value = ''; // Clear the file input
+        e.target.value = ''; 
       }
     }
   };
@@ -82,7 +82,7 @@ const EditProfile = () => {
     } catch (error) {
       toast.error(error.message || "Failed to update profile");
     }
-  };x
+  };
 
   const handleCancel = () => {
     navigate("/");
